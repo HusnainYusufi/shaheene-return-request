@@ -15,6 +15,13 @@ export default function Home() {
     top: 38,
     left: 45,
   });
+  const [orderNo, setOrderNo] = useState("");
+  const [requestType, setRequestType] = useState(requestTypes[0]);
+  const [reason, setReason] = useState("");
+  const [notes, setNotes] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [successOpen, setSuccessOpen] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
 
   const handleCatch = () => {
     setScore((prev) => prev + 1);
@@ -22,6 +29,48 @@ export default function Home() {
       top: 10 + Math.random() * 70,
       left: 10 + Math.random() * 70,
     });
+  };
+
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (!orderNo.trim() || !reason.trim()) {
+      setErrorMessage("Please provide an order number and reason.");
+      return;
+    }
+    setIsSubmitting(true);
+    setErrorMessage("");
+    try {
+      const response = await fetch(
+        `https://qa.api.shaheene.com/orders/${encodeURIComponent(
+          orderNo.trim(),
+        )}/returns`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            requestType,
+            reason,
+            notes,
+          }),
+        },
+      );
+
+      if (!response.ok) {
+        throw new Error("Unable to submit the request.");
+      }
+
+      setSuccessOpen(true);
+    } catch (error) {
+      setErrorMessage(
+        error instanceof Error
+          ? error.message
+          : "Something went wrong. Please try again.",
+      );
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -46,17 +95,17 @@ export default function Home() {
               </p>
               <h1 className="mt-3 text-4xl font-semibold">Shaheene</h1>
               <p className="mt-3 max-w-2xl text-sm text-slate-300">
-                Submit a streamlined request with a single form. Keep this page
-                open while your payload auto-refreshes in the background.
+                Submit a streamlined request with a single form. We will process
+                it as soon as possible.
               </p>
             </div>
             <div className="flex items-center gap-3 rounded-full border border-white/10 bg-white/10 px-4 py-2 text-xs text-slate-100">
               <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
-              Live queue syncing
+              Support team on standby
             </div>
           </div>
 
-          <form className="mt-8 grid gap-6">
+          <form className="mt-8 grid gap-6" onSubmit={handleSubmit}>
             <label className="grid gap-3">
               <span className="text-sm font-medium text-slate-200">
                 Order number
@@ -65,6 +114,9 @@ export default function Home() {
                 className="h-12 rounded-2xl border border-white/10 bg-slate-900/70 px-4 text-sm text-white placeholder:text-slate-500 shadow-inner focus:border-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-300/30"
                 placeholder="Enter order number"
                 type="text"
+                value={orderNo}
+                onChange={(event) => setOrderNo(event.target.value)}
+                required
               />
             </label>
 
@@ -73,7 +125,11 @@ export default function Home() {
                 <span className="text-sm font-medium text-slate-200">
                   Request type
                 </span>
-                <select className="h-12 rounded-2xl border border-white/10 bg-slate-900/70 px-4 text-sm text-white shadow-inner focus:border-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-300/30">
+                <select
+                  className="h-12 rounded-2xl border border-white/10 bg-slate-900/70 px-4 text-sm text-white shadow-inner focus:border-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-300/30"
+                  value={requestType}
+                  onChange={(event) => setRequestType(event.target.value)}
+                >
                   {requestTypes.map((type) => (
                     <option key={type} value={type}>
                       {type}
@@ -91,6 +147,8 @@ export default function Home() {
                   className="h-12 rounded-2xl border border-white/10 bg-slate-900/70 px-4 text-sm text-white placeholder:text-slate-500 shadow-inner focus:border-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-300/30"
                   placeholder="Why are you requesting this?"
                   type="text"
+                  value={reason}
+                  onChange={(event) => setReason(event.target.value)}
                 />
               </label>
             </div>
@@ -102,47 +160,23 @@ export default function Home() {
               <textarea
                 className="min-h-[120px] rounded-2xl border border-white/10 bg-slate-900/70 px-4 py-3 text-sm text-white placeholder:text-slate-500 shadow-inner focus:border-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-300/30"
                 placeholder="Add any extra context for the support team"
+                value={notes}
+                onChange={(event) => setNotes(event.target.value)}
               />
             </label>
 
-            <div className="grid gap-4 md:grid-cols-[1.2fr_0.8fr]">
-              <div className="rounded-2xl border border-white/10 bg-slate-900/60 p-5">
-                <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
-                  Live payload preview
-                </p>
-                <pre className="mt-3 overflow-auto whitespace-pre-wrap rounded-xl border border-white/10 bg-slate-950/70 p-4 text-[11px] leading-relaxed text-cyan-100">
-{`{
-  "requestType": "EXCHANGE",
-  "reason": "Size too small",
-  "notes": "Need a larger size"
-}`}
-                </pre>
+            {errorMessage ? (
+              <div className="rounded-2xl border border-rose-400/40 bg-rose-500/10 px-4 py-3 text-sm text-rose-100">
+                {errorMessage}
               </div>
-              <div className="flex flex-col justify-between gap-4 rounded-2xl border border-white/10 bg-gradient-to-br from-white/10 via-white/0 to-white/10 p-5">
-                <div>
-                  <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
-                    Loading state
-                  </p>
-                  <div className="mt-3 space-y-3">
-                    <div className="skeleton h-4 w-3/4" />
-                    <div className="skeleton h-4 w-full" />
-                    <div className="skeleton h-4 w-2/3" />
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="loading-spinner" />
-                  <div className="text-xs text-slate-300">
-                    Processing order in background...
-                  </div>
-                </div>
-              </div>
-            </div>
+            ) : null}
 
             <button
               type="submit"
-              className="h-12 rounded-2xl bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 text-sm font-semibold text-slate-950 shadow-lg transition hover:scale-[1.01] hover:shadow-cyan-400/30"
+              className="h-12 rounded-2xl bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-500 text-sm font-semibold text-slate-950 shadow-lg transition hover:scale-[1.01] hover:shadow-cyan-400/30 disabled:cursor-not-allowed disabled:opacity-70"
+              disabled={isSubmitting}
             >
-              Submit return request
+              {isSubmitting ? "Submitting..." : "Submit return request"}
             </button>
           </form>
         </section>
@@ -185,6 +219,30 @@ export default function Home() {
           </div>
         </section>
       </main>
+
+      {successOpen ? (
+        <div className="modal-backdrop fixed inset-0 z-50 flex items-center justify-center px-6">
+          <div className="modal-card w-full max-w-md rounded-3xl border border-white/10 bg-slate-900/90 p-8 text-center shadow-2xl">
+            <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-emerald-400/20 text-emerald-200">
+              <span className="text-2xl">✓</span>
+            </div>
+            <h3 className="text-xl font-semibold text-white">
+              Request received
+            </h3>
+            <p className="mt-3 text-sm text-slate-300">
+              Request has been generated, our department will call you for
+              pickup.
+            </p>
+            <button
+              type="button"
+              onClick={() => setSuccessOpen(false)}
+              className="mt-6 h-11 w-full rounded-2xl bg-white/10 text-sm font-semibold text-white transition hover:bg-white/20"
+            >
+              Close
+            </button>
+          </div>
+        </div>
+      ) : null}
     </div>
   );
 }
