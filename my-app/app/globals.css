@@ -46,3 +46,95 @@ body {
     transform: scale(1.08);
   }
 }
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@keyframes spinSlow {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes cursorOrbit {
+  0% {
+    transform: translate(0, 0);
+  }
+  25% {
+    transform: translate(60vw, 10vh);
+  }
+  50% {
+    transform: translate(30vw, 50vh);
+  }
+  75% {
+    transform: translate(70vw, 70vh);
+  }
+  100% {
+    transform: translate(0, 0);
+  }
+}
+
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  border-radius: 999px;
+  background: linear-gradient(
+    90deg,
+    rgba(148, 163, 184, 0.15),
+    rgba(148, 163, 184, 0.35),
+    rgba(148, 163, 184, 0.15)
+  );
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+.loading-spinner {
+  height: 28px;
+  width: 28px;
+  border-radius: 999px;
+  border: 2px solid rgba(148, 163, 184, 0.4);
+  border-top-color: rgba(56, 189, 248, 0.9);
+  animation: spinSlow 1s linear infinite;
+}
+
+.animated-cursor {
+  position: absolute;
+  top: 10%;
+  left: 10%;
+  height: 18px;
+  width: 18px;
+  border-radius: 999px;
+  background: rgba(56, 189, 248, 0.8);
+  box-shadow: 0 0 20px rgba(56, 189, 248, 0.8);
+  animation: cursorOrbit 12s linear infinite;
+  pointer-events: none;
+}
+
+.animated-cursor-ring {
+  position: absolute;
+  top: 10%;
+  left: 10%;
+  height: 40px;
+  width: 40px;
+  border-radius: 999px;
+  border: 1px solid rgba(148, 163, 184, 0.4);
+  animation: cursorOrbit 12s linear infinite;
+  pointer-events: none;
+}
+
+.game-target {
+  height: 36px;
+  width: 36px;
+  border-radius: 999px;
+  background: radial-gradient(circle, #22d3ee, #0ea5e9, transparent 70%);
+  box-shadow: 0 0 24px rgba(34, 211, 238, 0.8);
+  animation: float 3s ease-in-out infinite;
+  border: none;
+  cursor: pointer;
+}
